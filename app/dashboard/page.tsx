@@ -166,7 +166,7 @@ export default function DashboardPage() {
     useEffect(() => {
         if (!selectedSubj) return;
 
-        fetch('/results.json')
+        fetch('/api/results')
             .then(res => res.json())
             .then(fullData => {
                 const data = fullData.data[selectedSubj.id];
