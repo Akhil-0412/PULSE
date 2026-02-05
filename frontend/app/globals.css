@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@theme {
+  --color-border: hsl(217.2 32.6% 17.5%);
+  --color-input: hsl(217.2 32.6% 17.5%);
+  --color-ring: hsl(173 80% 40%);
+  --color-background: hsl(222.2 84% 4.9%);
+  --color-foreground: hsl(210 40% 98%);
+
+  --color-primary: hsl(173 80% 40%);
+  --color-primary-foreground: hsl(222.2 47.4% 11.2%);
+
+  --color-secondary: hsl(217.2 32.6% 17.5%);
+  --color-secondary-foreground: hsl(210 40% 98%);
+
+  --color-destructive: hsl(0 62.8% 30.6%);
+  --color-destructive-foreground: hsl(210 40% 98%);
+
+  --color-muted: hsl(217.2 32.6% 17.5%);
+  --color-muted-foreground: hsl(215 20.2% 65.1%);
+
+  --color-accent: hsl(217.2 32.6% 17.5%);
+  --color-accent-foreground: hsl(210 40% 98%);
+
+  --color-popover: hsl(222.2 84% 4.9%);
+  --color-popover-foreground: hsl(210 40% 98%);
+
+  --color-card: hsl(222.2 84% 4.9%);
+  --color-card-foreground: hsl(210 40% 98%);
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to sure everything still looks the same as it did with v3.
+*/
+@layer base {
+
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+/* Glassmorphism Utilities */
+@utility glass-panel {
+  @apply bg-slate-900/50 backdrop-blur-xl border border-slate-800/50 shadow-xl;
+}
+
+@utility glass-card {
+  @apply bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-xl hover:bg-slate-800/60 transition-all duration-300;
+}
+
+@utility text-gradient {
+  @apply bg-clip-text text-transparent bg-linear-to-r from-teal-400 to-cyan-400;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+    border-color: var(--color-border);
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+}
