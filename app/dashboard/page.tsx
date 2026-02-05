@@ -162,13 +162,54 @@ export default function DashboardPage() {
         }
     }, [selectedModel]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Fetch Graph Data (Single View)
+    // Client-side Mock Data Generator (Migration from Backend for Vercel Demo)
+    const generateMockData = (subjectId: string, modelType: 'resnet' | 'hybrid') => {
+        const points = 50; // 50 timepoints * 4s = 200s
+        const actuals = [];
+        const preds = [];
+        const lower = [];
+        const upper = [];
+
+        // Seed-like behavior based on subject ID char code
+        const seed = subjectId.charCodeAt(1) || 12;
+        let baseHr = 70 + (seed % 30); // 70-100 BPM base
+
+        // Noise level based on subject status
+        const subj = (modelType === 'resnet' ? SUBJECTS_RESNET : SUBJECTS_HYBRID).find(s => s.id === subjectId);
+        const isNoisy = subj?.status === 'Bad' || subj?.status === 'Outlier';
+        const noiseFactor = isNoisy ? 15 : 2;
+        const modelError = modelType === 'hybrid' ? 0.8 : 1.2; // Hybrid is better
+
+        for (let i = 0; i < points; i++) {
+            // Smooth sine wave HR variation
+            const gt = baseHr + Math.sin(i / 5) * 10 + (Math.random() * 2);
+            actuals.push(gt);
+
+            // Prediction with error
+            const error = (Math.random() - 0.5) * noiseFactor * modelError;
+            const pred = gt + error;
+            preds.push(pred);
+
+            // Confidence Intervals (Conformal Prediction)
+            // Noisy signals have wider intervals
+            const uncertainty = isNoisy ? 10 : 3;
+            lower.push(pred - uncertainty - (Math.random() * 2));
+            upper.push(pred + uncertainty + (Math.random() * 2));
+        }
+
+        return { actuals, preds, lower, upper };
+    };
+
+    // Fetch Graph Data (Simulated)
     useEffect(() => {
-        if (!selectedSubj || viewMode !== 'single') return;
-        fetch(`http://localhost:8000/api/subject/${selectedModel}/${selectedSubj.id}`)
-            .then(res => res.json())
-            .then(data => {
-                const formatted = data.actuals.map((act: number, i: number) => ({
+        if (!selectedSubj) return;
+
+        // Simulate network delay for realism
+        const timer = setTimeout(() => {
+            const data = generateMockData(selectedSubj.id, selectedModel);
+
+            if (viewMode === 'single') {
+                const formatted = data.actuals.map((act, i) => ({
                     time: i * 4,
                     groundTruth: act,
                     hr: data.preds[i],
@@ -177,16 +218,12 @@ export default function DashboardPage() {
                     confidence: calculateConfidence(data.upper[i] - data.lower[i])
                 }));
                 setGraphData(formatted);
-            })
-            .catch(err => console.error(err));
-    }, [selectedSubj, selectedModel, viewMode]);
+            }
 
-    // Fetch Comparison Data
-    useEffect(() => {
-        if (!selectedSubj || viewMode !== 'comparison') return;
-        fetch(`http://localhost:8000/api/compare/${selectedSubj.id}`)
-            .then(res => res.json())
-            .then(data => {
+            if (viewMode === 'comparison') {
+                const resnetData = generateMockData(selectedSubj.id, 'resnet');
+                const hybridData = generateMockData(selectedSubj.id, 'hybrid');
+
                 const format = (d: any) => d.actuals.map((act: number, i: number) => ({
                     time: i * 4,
                     groundTruth: act,
@@ -194,13 +231,16 @@ export default function DashboardPage() {
                     lowerCi: d.lower[i],
                     upperCi: d.upper[i]
                 }));
+
                 setComparisonData({
-                    resnet: data.resnet ? format(data.resnet) : [],
-                    hybrid: data.hybrid ? format(data.hybrid) : []
+                    resnet: format(resnetData),
+                    hybrid: format(hybridData)
                 });
-            })
-            .catch(err => console.error(err));
-    }, [selectedSubj, viewMode]);
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [selectedSubj, selectedModel, viewMode]);
 
     function calculateConfidence(width: number) {
         let score = 100 - (width * 1.5);
