@@ -162,84 +162,53 @@ export default function DashboardPage() {
         }
     }, [selectedModel]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Client-side Mock Data Generator (Migration from Backend for Vercel Demo)
-    const generateMockData = (subjectId: string, modelType: 'resnet' | 'hybrid') => {
-        const points = 50; // 50 timepoints * 4s = 200s
-        const actuals = [];
-        const preds = [];
-        const lower = [];
-        const upper = [];
-
-        // Seed-like behavior based on subject ID char code
-        const seed = subjectId.charCodeAt(1) || 12;
-        let baseHr = 70 + (seed % 30); // 70-100 BPM base
-
-        // Noise level based on subject status
-        const subj = (modelType === 'resnet' ? SUBJECTS_RESNET : SUBJECTS_HYBRID).find(s => s.id === subjectId);
-        const isNoisy = subj?.status === 'Bad' || subj?.status === 'Outlier';
-        const noiseFactor = isNoisy ? 15 : 2;
-        const modelError = modelType === 'hybrid' ? 0.8 : 1.2; // Hybrid is better
-
-        for (let i = 0; i < points; i++) {
-            // Smooth sine wave HR variation
-            const gt = baseHr + Math.sin(i / 5) * 10 + (Math.random() * 2);
-            actuals.push(gt);
-
-            // Prediction with error
-            const error = (Math.random() - 0.5) * noiseFactor * modelError;
-            const pred = gt + error;
-            preds.push(pred);
-
-            // Confidence Intervals (Conformal Prediction)
-            // Noisy signals have wider intervals
-            const uncertainty = isNoisy ? 10 : 3;
-            lower.push(pred - uncertainty - (Math.random() * 2));
-            upper.push(pred + uncertainty + (Math.random() * 2));
-        }
-
-        return { actuals, preds, lower, upper };
-    };
-
-    // Fetch Graph Data (Simulated)
+    // Fetch Real Graph Data from Static JSON
     useEffect(() => {
         if (!selectedSubj) return;
 
-        // Simulate network delay for realism
-        const timer = setTimeout(() => {
-            const data = generateMockData(selectedSubj.id, selectedModel);
+        fetch('/results.json')
+            .then(res => res.json())
+            .then(fullData => {
+                const data = fullData.data[selectedSubj.id];
+                if (!data) return;
 
-            if (viewMode === 'single') {
-                const formatted = data.actuals.map((act, i) => ({
-                    time: i * 4,
-                    groundTruth: act,
-                    hr: data.preds[i],
-                    lowerCi: data.lower[i],
-                    upperCi: data.upper[i],
-                    confidence: calculateConfidence(data.upper[i] - data.lower[i])
-                }));
-                setGraphData(formatted);
-            }
+                if (viewMode === 'single') {
+                    // Get data for selected model
+                    const modelData = data[selectedModel];
+                    if (!modelData) return;
 
-            if (viewMode === 'comparison') {
-                const resnetData = generateMockData(selectedSubj.id, 'resnet');
-                const hybridData = generateMockData(selectedSubj.id, 'hybrid');
+                    const formatted = modelData.actuals.map((act: number, i: number) => ({
+                        time: i * 4,
+                        groundTruth: act,
+                        hr: modelData.preds[i],
+                        lowerCi: modelData.lower[i],
+                        upperCi: modelData.upper[i],
+                        // Calculate confidence based on CI width
+                        confidence: calculateConfidence(modelData.upper[i] - modelData.lower[i])
+                    }));
+                    setGraphData(formatted);
+                }
 
-                const format = (d: any) => d.actuals.map((act: number, i: number) => ({
-                    time: i * 4,
-                    groundTruth: act,
-                    hr: d.preds[i],
-                    lowerCi: d.lower[i],
-                    upperCi: d.upper[i]
-                }));
+                if (viewMode === 'comparison') {
+                    const resnetData = data.resnet;
+                    const hybridData = data.hybrid;
 
-                setComparisonData({
-                    resnet: format(resnetData),
-                    hybrid: format(hybridData)
-                });
-            }
-        }, 300);
+                    const format = (d: any) => d.actuals.map((act: number, i: number) => ({
+                        time: i * 4,
+                        groundTruth: act,
+                        hr: d.preds[i],
+                        lowerCi: d.lower[i],
+                        upperCi: d.upper[i]
+                    }));
 
-        return () => clearTimeout(timer);
+                    setComparisonData({
+                        resnet: resnetData ? format(resnetData) : [],
+                        hybrid: hybridData ? format(hybridData) : []
+                    });
+                }
+            })
+            .catch(err => console.error("Failed to load results:", err));
+
     }, [selectedSubj, selectedModel, viewMode]);
 
     function calculateConfidence(width: number) {
