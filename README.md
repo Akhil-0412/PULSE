@@ -5,18 +5,18 @@
   <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License">
 </p>
 
-<h1 align="center">🫀 PulseGuard</h1>
-<h3 align="center">Advancing Wearable Health Tech: Deep Learning and Uncertainty-Aware Heart Rate Prediction</h3>
+<h1 align="center">🫀 PULSE</h1>
+<h3 align="center"><b>P</b>PG-based <b>U</b>ncertainty-aware <b>L</b>earning for <b>S</b>ignal <b>E</b>stimation</h3>
 
 <p align="center">
-  <em>A robust PPG-based heart rate estimation system using deep learning with conformal prediction for uncertainty quantification.</em>
+  <em>A robust deep learning system for heart rate estimation from PPG signals with conformal prediction for uncertainty quantification.</em>
 </p>
 
 ---
 
 ## 📋 Overview
 
-This project addresses critical challenges in wearable heart rate monitoring by developing **robust deep learning models** that work reliably on noisy, real-world PPG (Photoplethysmography) signals.
+**PULSE** addresses critical challenges in wearable heart rate monitoring by developing robust deep learning models that work reliably on noisy, real-world PPG (Photoplethysmography) signals.
 
 ### The Challenge
 Traditional approaches fail on noisy data because they:
@@ -84,8 +84,8 @@ We iteratively improved our approach through three phases:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/PPG_Project_Recreation.git
-cd PPG_Project_Recreation
+git clone https://github.com/Akhil-0412/PULSE.git
+cd PULSE
 
 # Create virtual environment
 python -m venv venv
@@ -95,9 +95,6 @@ source venv/bin/activate  # Linux/Mac
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Download dataset (PhysioNet)
-# Place in data/physionet/
 ```
 
 ---
@@ -137,7 +134,7 @@ Visit `http://localhost:3000` to explore the interactive dashboard.
 ## 📁 Project Structure
 
 ```
-PPG_Project_Recreation/
+PULSE/
 ├── src/
 │   ├── models/
 │   │   ├── transformer.py        # Phase 1: TransPPG
@@ -148,24 +145,13 @@ PPG_Project_Recreation/
 │   │   ├── train_resnet.py
 │   │   └── train_hybrid.py
 │   ├── preprocessing/
-│   │   ├── preprocess_experiment.py
-│   │   └── preprocess_real.py
 │   └── utils/
-│       ├── check_results.py
-│       ├── visualize.py
-│       └── verify_loso.py
 ├── results/
 │   ├── resnet1d/
-│   │   └── cnn_results.npy
 │   ├── hybrid/
-│   │   └── hybrid_results.npy
 │   └── visualizations/
-│       ├── mae_ranking.png
-│       └── subjects/
-├── webapp/
-│   ├── frontend/                 # Next.js dashboard
-│   └── backend/                  # FastAPI server
-├── data/                         # Datasets (gitignored)
+├── frontend/                     # Next.js dashboard
+├── webapp/backend/               # FastAPI server
 ├── requirements.txt
 └── README.md
 ```
@@ -174,28 +160,22 @@ PPG_Project_Recreation/
 
 ## 🧠 Model Architecture: AttentionCNNLSTM
 
-Our custom hybrid architecture combines the best of CNNs and RNNs:
-
 ```
 Input: 4 channels × 1600 samples (16 seconds @ 100Hz)
                     │
     ┌───────────────▼───────────────┐
     │     CNN Feature Extraction    │
-    │   Conv1d(4→64) + BN + ReLU    │
-    │   Conv1d(64→128) + BN + ReLU  │
-    │   Conv1d(128→256) + BN + ReLU │
+    │   Conv1d(4→64→128→256)        │
     └───────────────┬───────────────┘
-                    │ (256 × 100)
+                    │
     ┌───────────────▼───────────────┐
     │      Bi-LSTM Temporal         │
     │    LSTM(256→128, bidir)       │
-    │     Hidden: 256 features      │
     └───────────────┬───────────────┘
                     │
     ┌───────────────▼───────────────┐
     │    Attention + Regression     │
-    │   Multi-Head Self-Attention   │
-    │   Dense(256→64) + Dense(64→1) │
+    │   Dense(256→64→1)             │
     └───────────────┬───────────────┘
                     │
                     ▼
@@ -207,12 +187,12 @@ Input: 4 channels × 1600 samples (16 seconds @ 100Hz)
 
 ## 📚 Dataset
 
-This project uses the **PhysioNet Pulse Transit Time PPG Dataset v1.1.0**:
+Uses the **PhysioNet Pulse Transit Time PPG Dataset v1.1.0**:
 - 22 healthy subjects
 - 4-channel PPG + 3-axis accelerometry
 - Ground truth ECG-derived heart rate
 
-> ⚠️ **Note**: Dataset files are not included in this repository due to size. Download from [PhysioNet](https://physionet.org/).
+> ⚠️ Dataset files not included. Download from [PhysioNet](https://physionet.org/).
 
 ---
 
@@ -220,16 +200,15 @@ This project uses the **PhysioNet Pulse Transit Time PPG Dataset v1.1.0**:
 
 - **Dataset**: PhysioNet PTT-PPG Dataset
 - **Frameworks**: PyTorch, FastAPI, Next.js, Recharts
-- **Methodology**: Conformal Prediction for uncertainty quantification
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
 <p align="center">
-  Made with ❤️ for advancing wearable health technology
+  <b>PULSE</b> — PPG-based Uncertainty-aware Learning for Signal Estimation
 </p>
