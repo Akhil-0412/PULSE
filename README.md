@@ -46,29 +46,29 @@ Traditional approaches fail on noisy, real-world data because they:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│                              PULSE PIPELINE                                     │
-│                                                                                 │
-│  Raw PPG Signal      Spectrogram         CNN Feature        BiLSTM Temporal     │
-│  (4ch × 1600)    →   Representation  →   Extraction     →  Encoding         →  │
+│                              PULSE PIPELINE                                      │
+│                                                                                  │
+│  Raw PPG Signal      Spectrogram         CNN Feature        BiLSTM Temporal      │
+│  (4ch × 1600)    →   Representation  →   Extraction     →  Encoding         →    │
 │                      (2D Image)          (Conv1d blocks)    (Bidirectional)      │
-│                                                                                 │
-│  ┌──────────┐       ┌──────────┐        ┌──────────┐      ┌──────────────┐      │
-│  │ PPG      │       │ STFT     │        │ Conv1d   │      │ BiLSTM       │      │
-│  │ + Accel  │  →    │ Log-Mag  │   →    │ 64→128   │  →   │ 256→128×2    │      │
-│  │ 16s@100Hz│       │ Normalize│        │ →256     │      │ 2 layers     │      │
-│  └──────────┘       └──────────┘        └──────────┘      └──────┬───────┘      │
-│                                                                  │              │
+│                                                                                  │
+│  ┌──────────┐       ┌──────────┐        ┌──────────┐      ┌──────────────┐       │
+│  │ PPG      │       │ STFT     │        │ Conv1d   │      │ BiLSTM       │       │
+│  │ + Accel  │  →    │ Log-Mag  │   →    │ 64→128   │  →   │ 256→128×2    │       │
+│  │ 16s@100Hz│       │ Normalize│        │ →256     │      │ 2 layers     │       │
+│  └──────────┘       └──────────┘        └──────────┘      └──────┬───────┘       │
+│                                                                  │               │
 │                   ┌──────────────────────────────────────────────┐│              │
 │                   │          Temporal Attention                  ││              │
 │                   │   Learns which time steps matter most       ◄┘│              │
 │                   │   for heart rate estimation                   │              │
 │                   └──────────────────┬───────────────────────────┘│              │
 │                                      │                            │              │
-│                               ┌──────▼──────┐                    │              │
-│                               │  Regression │                    │              │
-│                               │  Head       │                    │              │
-│                               │  256→64→1   │                    │              │
-│                               └──────┬──────┘                    │              │
+│                               ┌──────▼──────┐                     │              │
+│                               │  Regression │                     │              │
+│                               │  Head       │                     │              │
+│                               │  256→64→1   │                     │              │
+│                               └──────┬──────┘                     │              │
 │                                      │                            │              │
 │                                      ▼                            │              │
 │                              HR (BPM) ± Uncertainty               │              │
